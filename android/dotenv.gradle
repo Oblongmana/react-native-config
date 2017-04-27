@@ -21,6 +21,8 @@ def getCurrentFlavor() {
             }
             variant = variant.toLowerCase();
             return variant;
+        } else {
+            return "";
         }
     } else {
         return "";
