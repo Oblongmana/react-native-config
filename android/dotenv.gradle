@@ -3,11 +3,25 @@ import java.util.regex.Pattern
 
 def getCurrentFlavor() {
     Gradle gradle = getGradle()
-    String tskReqStr = gradle.getStartParameter().getTaskRequests()[0].args
+    List<TaskExecutionRequest> taskRequests = gradle.getStartParameter().getTaskRequests();
+    String tskReqStr = taskRequests.toString()
 
-    Matcher matcher = Pattern.compile("([A-Z]\\w+)").matcher( tskReqStr )
-    if( matcher.find() ) {
-        return matcher.group(1).toLowerCase()
+    //tskReqStr will be null or the requests array will be empty during first pass in gradle sync
+    if( tskReqStr != null && !taskRequests.isEmpty() ) {
+        String firstTaskRequestArgsString = gradle.getStartParameter().getTaskRequests()[0].args.toString();
+
+        Pattern pattern = Pattern.compile("(assemble|generate|install)(\\w+)")
+        Matcher matcher = pattern.matcher(firstTaskRequestArgsString)
+
+        if (matcher.find()) {
+            String variant = matcher.group(2);
+            //Strip "Sources" from the end, means Android Studio gradle sync will be handled correctly
+            if (variant.endsWith("Sources")) {
+                variant = variant.substring(0,variant.length() - 7)
+            }
+            variant = variant.toLowerCase();
+            return variant;
+        }
     } else {
         return "";
     }
